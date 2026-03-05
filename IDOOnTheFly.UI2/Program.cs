@@ -1,0 +1,18 @@
+using Blazored.LocalStorage;
+using Blazored.Toast;
+using IDOOnTheFly.UI2;
+using IDOOnTheFly.UI2.Services;
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+
+var builder = WebAssemblyHostBuilder.CreateDefault(args);
+builder.RootComponents.Add<App>("#app");
+builder.RootComponents.Add<HeadOutlet>("head::after");
+
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddBlazoredToast();
+builder.Services.AddScoped<SchemaService>();
+builder.Services.AddScoped<IdoGeneratorService>();
+
+await builder.Build().RunAsync();

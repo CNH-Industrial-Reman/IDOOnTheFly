@@ -1,0 +1,31 @@
+@using IDOOnTheFly.BL.Models
+
+<div class="card mb-3">
+    <div class="card-header fw-semibold">IDO Header</div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-8">
+                <label class="form-label">IDO Name</label>
+                <input type="text" class="form-control"
+                       placeholder="e.g. CNH_LeadTimeUpdate"
+                       value="@Ido.Name"
+                       @oninput="e => { Ido.Name = e.Value?.ToString() ?? string.Empty; IdoChanged.InvokeAsync(Ido); }" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Revision #</label>
+                <input type="number" class="form-control" min="1"
+                       value="@Ido.RevisionNo"
+                       @oninput="e => { if (int.TryParse(e.Value?.ToString(), out var v)) { Ido.RevisionNo = v; IdoChanged.InvokeAsync(Ido); } }" />
+            </div>
+        </div>
+        @if (!string.IsNullOrEmpty(Ido.Name))
+        {
+            <small class="text-muted mt-2 d-block">ServerName: <strong>@Ido.ServerName</strong></small>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IdoDefinition Ido { get; set; } = default!;
+    [Parameter] public EventCallback<IdoDefinition> IdoChanged { get; set; }
+}

@@ -1,0 +1,89 @@
+@using IDOOnTheFly.BL.Models
+
+<div>
+    @if (Tables.Count == 0)
+    {
+        <p class="text-muted">No tables parsed yet.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Table Name</th>
+                        <th>Alias</th>
+                        <th style="width:110px">Type</th>
+                        <th>Join Condition</th>
+                        <th style="width:80px">Join Type</th>
+                        <th style="width:60px"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var table in Tables)
+                    {
+                        <tr>
+                            <td>
+                                <input type="text" class="form-control form-control-sm"
+                                       value="@table.Name"
+                                       @oninput="e => { table.Name = e.Value?.ToString() ?? string.Empty; Changed.InvokeAsync(); }" />
+                            </td>
+                            <td>
+                                <input type="text" class="form-control form-control-sm"
+                                       value="@table.Alias"
+                                       @oninput="e => { table.Alias = e.Value?.ToString() ?? string.Empty; Changed.InvokeAsync(); }" />
+                            </td>
+                            <td>
+                                <select class="form-select form-select-sm"
+                                        value="@table.Type"
+                                        @onchange="e => { table.Type = Enum.Parse<TableType>(e.Value?.ToString() ?? nameof(TableType.PRIMARY)); Changed.InvokeAsync(); }">
+                                    <option value="PRIMARY">PRIMARY</option>
+                                    <option value="SECONDARY">SECONDARY</option>
+                                </select>
+                            </td>
+                            <td>
+                                @if (table.Type == TableType.SECONDARY)
+                                {
+                                    <input type="text" class="form-control form-control-sm"
+                                           value="@table.ExplicitJoin"
+                                           @oninput="e => { table.ExplicitJoin = e.Value?.ToString(); Changed.InvokeAsync(); }" />
+                                }
+                            </td>
+                            <td>
+                                @if (table.Type == TableType.SECONDARY)
+                                {
+                                    <select class="form-select form-select-sm"
+                                            value="@table.JoinType"
+                                            @onchange="e => { table.JoinType = Enum.Parse<JoinType>(e.Value?.ToString() ?? nameof(JoinType.INNER)); Changed.InvokeAsync(); }">
+                                        <option value="INNER">INNER</option>
+                                        <option value="LEFT">LEFT</option>
+                                        <option value="RIGHT">RIGHT</option>
+                                        <option value="CROSS">CROSS</option>
+                                    </select>
+                                }
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-danger"
+                                        @onclick="() => RemoveTable(table)">✕</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <button class="btn btn-sm btn-outline-secondary" @onclick="AddSecondary">+ Add Table</button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public List<IdoTable> Tables { get; set; } = default!;
+    [Parameter] public EventCallback Changed { get; set; }
+
+    private void RemoveTable(IdoTable table) { Tables.Remove(table); Changed.InvokeAsync(); }
+
+    private void AddSecondary()
+    {
+        Tables.Add(new IdoTable { Name = "NewTable", Alias = "nt", Type = TableType.SECONDARY });
+        Changed.InvokeAsync();
+    }
+}

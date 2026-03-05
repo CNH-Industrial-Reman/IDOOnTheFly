@@ -1,0 +1,34 @@
+<div class="card mb-3">
+    <div class="card-header fw-semibold">SQL SELECT</div>
+    <div style="height:320px; overflow:auto;">
+        <CodeMirror6Wrapper
+            Doc="@_value"
+            DocChanged="OnDocChanged"
+            Language="CodeMirrorLanguage.MsSql"
+            Theme="ThemeMirrorTheme.Tomorrow"
+            Placeholder="SELECT alias.column AS PropertyName FROM table_name alias ..."
+            TabSize="4"
+            style="height:320px;" />
+    </div>
+</div>
+
+@code {
+    private string _value = string.Empty;
+
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (_value != Value && !string.IsNullOrWhiteSpace(Value))
+            _value = Value;
+    }
+
+    private async Task OnDocChanged(string newValue)
+    {
+        _value = newValue;
+        await ValueChanged.InvokeAsync(newValue);
+    }
+
+    public void SetValue(string value) => _value = value;
+}

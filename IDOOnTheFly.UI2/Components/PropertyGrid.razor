@@ -1,0 +1,104 @@
+@using IDOOnTheFly.BL.Models
+
+<div>
+    @if (Properties.Count == 0)
+    {
+        <p class="text-muted">No properties parsed yet. Enter a SQL SELECT and click Parse SQL.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width:40px">#</th>
+                        <th>Property Name</th>
+                        <th style="width:60px">Key</th>
+                        <th style="width:110px">Binding</th>
+                        <th>Class</th>
+                        <th>Column / Expression</th>
+                        <th style="width:60px"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var prop in Properties)
+                    {
+                        <tr>
+                            <td>@prop.Sequence</td>
+                            <td>
+                                <input type="text" class="form-control form-control-sm"
+                                       value="@prop.Name"
+                                       @oninput="e => { prop.Name = e.Value?.ToString() ?? string.Empty; Changed.InvokeAsync(); }" />
+                            </td>
+                            <td class="text-center">
+                                <input type="checkbox" class="form-check-input"
+                                       checked="@prop.IsKey"
+                                       @onchange="e => { prop.IsKey = (bool)(e.Value ?? false); Changed.InvokeAsync(); }" />
+                            </td>
+                            <td>
+                                <select class="form-select form-select-sm"
+                                        value="@prop.Binding"
+                                        @onchange="e => { prop.Binding = Enum.Parse<PropertyBinding>(e.Value?.ToString() ?? nameof(PropertyBinding.BOUND)); Changed.InvokeAsync(); }">
+                                    <option value="BOUND">BOUND</option>
+                                    <option value="DERIVED">DERIVED</option>
+                                    <option value="UNBOUND">UNBOUND</option>
+                                </select>
+                            </td>
+                            <td>
+                                <input type="text" class="form-control form-control-sm"
+                                       value="@prop.PropertyClass"
+                                       @oninput="e => { prop.PropertyClass = e.Value?.ToString() ?? string.Empty; Changed.InvokeAsync(); }" />
+                            </td>
+                            <td>
+                                @if (prop.Binding == PropertyBinding.BOUND)
+                                {
+                                    <span class="text-muted small">@prop.ColumnTableAlias.@prop.BoundToColumn</span>
+                                }
+                                else if (prop.Binding == PropertyBinding.DERIVED)
+                                {
+                                    <span class="text-muted small fst-italic">@prop.Expression</span>
+                                }
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-danger"
+                                        @onclick="() => RemoveProperty(prop)">✕</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <button class="btn btn-sm btn-outline-secondary" @onclick="AddDerived">+ Add Derived Property</button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public List<IdoProperty> Properties { get; set; } = default!;
+    [Parameter] public EventCallback Changed { get; set; }
+
+    private void RemoveProperty(IdoProperty prop)
+    {
+        Properties.Remove(prop);
+        RenumberSequences();
+        Changed.InvokeAsync();
+    }
+
+    private void AddDerived()
+    {
+        Properties.Add(new IdoProperty
+        {
+            Name = "NewProperty",
+            Binding = PropertyBinding.DERIVED,
+            Expression = "''",
+            PropertyClass = "String",
+            Sequence = Properties.Count + 1
+        });
+        Changed.InvokeAsync();
+    }
+
+    private void RenumberSequences()
+    {
+        for (int i = 0; i < Properties.Count; i++)
+            Properties[i].Sequence = i + 1;
+    }
+}

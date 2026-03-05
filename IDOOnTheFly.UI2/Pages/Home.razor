@@ -1,0 +1,128 @@
+@page "/"
+@inject IdoGeneratorService Generator
+@inject IToastService Toast
+@inject IJSRuntime JS
+
+<PageTitle>IDOOnTheFly</PageTitle>
+
+<IdoHeaderForm Ido="_ido" IdoChanged="OnIdoChanged" />
+
+<SqlEditor Value="" ValueChanged="v => _sql = v" />
+
+<div class="mb-3">
+    <button class="btn btn-primary me-2" @onclick="ParseSql" disabled="@_parsing">
+        @if (_parsing) { <span class="spinner-border spinner-border-sm me-1"></span> }
+        Parse SQL
+    </button>
+</div>
+
+@if (_ido.Properties.Count > 0 || _ido.Tables.Count > 0)
+{
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <button class="nav-link @(_tab == "props" ? "active" : "")" @onclick='() => _tab = "props"'>
+                Properties (@_ido.Properties.Count)
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(_tab == "tables" ? "active" : "")" @onclick='() => _tab = "tables"'>
+                Tables (@_ido.Tables.Count)
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(_tab == "xml" ? "active" : "")" @onclick='() => _tab = "xml"'>
+                XML Preview
+            </button>
+        </li>
+    </ul>
+
+    @if (_tab == "props")
+    {
+        <PropertyGrid Properties="_ido.Properties" Changed="StateHasChanged" />
+    }
+    else if (_tab == "tables")
+    {
+        <TablesView Tables="_ido.Tables" Changed="StateHasChanged" />
+    }
+    else
+    {
+        <XmlPreview Xml="_xml" />
+    }
+
+    <div class="mt-3 d-flex gap-2">
+        <button class="btn btn-success" @onclick="GenerateAndDownload" disabled="@string.IsNullOrEmpty(_ido.Name)">
+            Generate &amp; Download XML
+        </button>
+        <button class="btn btn-outline-secondary" @onclick="CopyXml" disabled="@string.IsNullOrEmpty(_xml)">
+            Copy XML
+        </button>
+    </div>
+}
+
+@code {
+    private IdoDefinition _ido = new();
+    private string _sql = string.Empty;
+    private string _xml = string.Empty;
+    private string _tab = "props";
+    private bool _parsing;
+
+    private void OnIdoChanged(IdoDefinition updated) => _ido = updated;
+
+    private async Task ParseSql()
+    {
+
+        if (string.IsNullOrWhiteSpace(_sql))
+        {
+            Toast.ShowWarning("Enter a SQL SELECT statement first.");
+            return;
+        }
+
+        _parsing = true;
+        try
+        {
+            var parsed = await Generator.ParseAsync(_sql);
+            // Preserve Name/RevisionNo set by user
+            parsed.Name = _ido.Name;
+            parsed.RevisionNo = _ido.RevisionNo;
+            _ido = parsed;
+            _xml = string.Empty;
+            _tab = "props";
+            Toast.ShowSuccess($"Parsed {_ido.Properties.Count} properties, {_ido.Tables.Count} tables.");
+        }
+        catch (Exception ex)
+        {
+            Toast.ShowError($"Parse error: {ex.Message}");
+        }
+        finally
+        {
+            _parsing = false;
+        }
+    }
+
+    private async Task GenerateAndDownload()
+    {
+        if (string.IsNullOrEmpty(_ido.Name))
+        {
+            Toast.ShowWarning("Set the IDO Name before generating.");
+            return;
+        }
+
+        _xml = Generator.Generate(_ido);
+        _tab = "xml";
+
+        var bytes = System.Text.Encoding.UTF8.GetBytes(_xml);
+        var base64 = Convert.ToBase64String(bytes);
+        var filename = $"{_ido.Name}.xml";
+
+        await JS.InvokeVoidAsync("eval",
+            $"var a=document.createElement('a');a.href='data:text/xml;base64,{base64}';a.download='{filename}';a.click();");
+
+        Toast.ShowSuccess($"Downloaded {filename}");
+    }
+
+    private async Task CopyXml()
+    {
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", _xml);
+        Toast.ShowSuccess("XML copied to clipboard.");
+    }
+}

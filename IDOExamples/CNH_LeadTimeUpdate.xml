@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ObjectStudioExport Version="060000">
+   <IDODefinitions>
+      <IDODefinition Name="CNH_LeadTimeUpdate">
+         <ServerName>CNH</ServerName>
+         <RevisionNo>3</RevisionNo>
+         <RevisionDate>2026-02-13T16:23:34</RevisionDate>
+         <ReplaceFlag>0</ReplaceFlag>
+         <QuoteTableAliases>0</QuoteTableAliases>
+         <Tables>
+            <Table Name="CNH_LeadTimeUpdate" Alias="ltu" Type="PRIMARY" />
+         </Tables>
+         <Methods />
+         <Properties>
+            <Property Name="CreateDate" Key="0" Binding="BOUND" Sequence="1">
+               <PropertyClass>CurrentDate</PropertyClass>
+               <PseudoKeyFlag>0</PseudoKeyFlag>
+               <BoundToColumn>CreateDate</BoundToColumn>
+               <ColumnTableAlias>ltu</ColumnTableAlias>
+               <PropertyAttributes />
+            </Property>
+            <Property Name="CreatedBy" Key="0" Binding="BOUND" Sequence="3">
+               <PropertyClass>UserName</PropertyClass>
+               <PseudoKeyFlag>0</PseudoKeyFlag>
+               <BoundToColumn>CreatedBy</BoundToColumn>
+               <ColumnTableAlias>ltu</ColumnTableAlias>
+               <PropertyAttributes />
+            </Property>
+            <Property Name="CurrentDate" Key="0" Binding="BOUND" Sequence="5">
+               <PropertyClass>CurrentDate</PropertyClass>
+               <PseudoKeyFlag>0</PseudoKeyFlag>
+               <BoundToColumn>RecordDate</BoundToColumn>
+               <ColumnTableAlias>ltu</ColumnTableAlias>
+               <PropertyAttributes />
+            </Property>
+            <Property Name="InWorkflow" Key="0" Binding="BOUND" Sequence="7">
+               <PropertyClass>InWorkflowBase</PropertyClass>
+               <PseudoKeyFlag>0</PseudoKeyFlag>
+               <BoundToColumn>InWorkflow</BoundToColumn>
+               <ColumnTableAlias>ltu</ColumnTableAlias>
+               <PropertyAttributes />
+            </Property>
+            <Property Name="Item" Key="0" Binding="BOUND" Sequence="10">
+               <PropertyClass>Item</PropertyClass>
+               <PseudoKeyFlag>0</PseudoKeyFlag>
+               <BoundToColumn>item</BoundToColumn>
+               <ColumnTableAlias>ltu</ColumnTableAlias>
+               <PropertyAttributes>
+                  <ColumnDataType>ItemType</ColumnDataType>
+                  <DataLength>30</DataLength>
+                  <DataType>String</DataType>
+                  <IsRequired>1</IsRequired>
+               </PropertyAttributes>
+            </Property>
+            <Property Name="LeadTime" Key="0" Binding="BOUND" Sequence="9">
+               <PropertyClass>LeadTime</PropertyClass>
+               <PseudoKeyFlag>0</PseudoKeyFlag>
+               <BoundToColumn>lead_time</BoundToColumn>
+               <ColumnTableAlias>ltu</ColumnTableAlias>
+               <PropertyAttributes>
+                  <DataType>Short Integer</DataType>
+                  <IsRequired>1</IsRequired>
+               </PropertyAttributes>
+            </Property>
+            <Property Name="NoteExistsFlag" Key="0" Binding="BOUND" Sequence="6">
+               <PropertyClass>FlagNy</PropertyClass>
+               <PseudoKeyFlag>0</PseudoKeyFlag>
+               <BoundToColumn>NoteExistsFlag</BoundToColumn>
+               <ColumnTableAlias>ltu</ColumnTableAlias>
+               <PropertyAttributes />
+            </Property>
+            <Property Name="RowPointer" Key="0" Binding="BOUND" Sequence="4">
+               <PropertyClass>RowPointer</PropertyClass>
+               <PseudoKeyFlag>0</PseudoKeyFlag>
+               <BoundToColumn>RowPointer</BoundToColumn>
+               <ColumnTableAlias>ltu</ColumnTableAlias>
+               <PropertyAttributes />
+            </Property>
+            <Property Name="UpdatedBy" Key="0" Binding="BOUND" Sequence="2">
+               <PropertyClass>UserName</PropertyClass>
+               <PseudoKeyFlag>0</PseudoKeyFlag>
+               <BoundToColumn>UpdatedBy</BoundToColumn>
+               <ColumnTableAlias>ltu</ColumnTableAlias>
+               <PropertyAttributes />
+            </Property>
+            <Property Name="VendNum" Key="0" Binding="BOUND" Sequence="11">
+               <PropertyClass>VendNum</PropertyClass>
+               <PseudoKeyFlag>0</PseudoKeyFlag>
+               <BoundToColumn>vend_num</BoundToColumn>
+               <ColumnTableAlias>ltu</ColumnTableAlias>
+               <PropertyAttributes>
+                  <ColumnDataType>VendNumType</ColumnDataType>
+                  <DataLength>7</DataLength>
+                  <DataType>NumSortedString</DataType>
+                  <IsRequired>1</IsRequired>
+               </PropertyAttributes>
+            </Property>
+         </Properties>
+         <Rules />
+      </IDODefinition>
+   </IDODefinitions>
+</ObjectStudioExport>

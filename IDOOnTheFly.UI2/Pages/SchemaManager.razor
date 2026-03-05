@@ -1,0 +1,114 @@
+@page "/schema"
+@inject SchemaService SchemaService
+@inject IToastService Toast
+@inject IJSRuntime JS
+
+<PageTitle>Schema Manager — IDOOnTheFly</PageTitle>
+<h4>Schema Manager</h4>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header fw-semibold">Import CSV Schema</div>
+            <div class="card-body">
+                <p class="text-muted small">
+                    CSV format: <code>table_name,column_name,data_type,length,nullable</code>
+                </p>
+                <InputFile OnChange="OnFileSelected" accept=".csv,.txt" class="form-control mb-3" />
+                @if (!string.IsNullOrEmpty(_csvPreview))
+                {
+                    <pre class="p-2 rounded" style="background:#f8f9fa;font-size:12px;max-height:200px;overflow:auto;">@_csvPreview</pre>
+                }
+                <button class="btn btn-primary" @onclick="ImportCsv" disabled="@string.IsNullOrEmpty(_csvContent)">
+                    Import
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header fw-semibold">Current Schema</div>
+            <div class="card-body">
+                @if (_schema == null)
+                {
+                    <p class="text-muted">No schema loaded.</p>
+                }
+                else
+                {
+                    <p>
+                        <strong>@_schema.Tables.Count</strong> tables,
+                        <strong>@_schema.Tables.Sum(t => t.Columns.Count)</strong> total columns.
+                    </p>
+                    <div style="max-height:250px;overflow-y:auto;">
+                        @foreach (var table in _schema.Tables)
+                        {
+                            <details class="mb-1">
+                                <summary class="fw-semibold">@table.TableName (@table.Columns.Count cols)</summary>
+                                <ul class="small ps-3 mb-1">
+                                    @foreach (var col in table.Columns)
+                                    {
+                                        <li>@col.ColumnName — <em>@col.DataType@(col.Length.HasValue ? $"({col.Length})" : "")</em></li>
+                                    }
+                                </ul>
+                            </details>
+                        }
+                    </div>
+                    <div class="mt-2 d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" @onclick="ExportCsv">Export CSV</button>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="ClearSchema">Clear Schema</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private ErpSchema? _schema;
+    private string _csvContent = string.Empty;
+    private string _csvPreview = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _schema = await SchemaService.GetSchemaAsync();
+    }
+
+    private async Task OnFileSelected(InputFileChangeEventArgs e)
+    {
+        using var reader = new System.IO.StreamReader(e.File.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024));
+        _csvContent = await reader.ReadToEndAsync();
+        _csvPreview = _csvContent.Length > 500 ? _csvContent[..500] + "..." : _csvContent;
+    }
+
+    private async Task ImportCsv()
+    {
+        try
+        {
+            _schema = SchemaService.ParseCsv(_csvContent);
+            await SchemaService.SaveSchemaAsync(_schema);
+            Toast.ShowSuccess($"Schema imported: {_schema.Tables.Count} tables.");
+        }
+        catch (Exception ex)
+        {
+            Toast.ShowError($"Import failed: {ex.Message}");
+        }
+    }
+
+    private async Task ExportCsv()
+    {
+        if (_schema == null) return;
+        var csv = SchemaService.ExportCsv(_schema);
+        var bytes = System.Text.Encoding.UTF8.GetBytes(csv);
+        var base64 = Convert.ToBase64String(bytes);
+        await JS.InvokeVoidAsync("eval",
+            $"var a=document.createElement('a');a.href='data:text/csv;base64,{base64}';a.download='erpschema.csv';a.click();");
+    }
+
+    private async Task ClearSchema()
+    {
+        await SchemaService.ClearSchemaAsync();
+        _schema = null;
+        Toast.ShowSuccess("Schema cleared.");
+    }
+}
